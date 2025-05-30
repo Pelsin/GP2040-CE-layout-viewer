@@ -36,6 +36,33 @@ type Element = {
 
 const SCREEN_MULTIPLIER = 5;
 
+const DEFAULT_DEF_STRING = `#define DEFAULT_BOARD_LAYOUT_A {\
+    {GP_ELEMENT_PIN_BUTTON, {47,  19, 4, 4, 1, 1, 27,   GP_SHAPE_ELLIPSE}},\
+    {GP_ELEMENT_PIN_BUTTON, {32,  27, 4, 4, 1, 1, 5,    GP_SHAPE_ELLIPSE}},\
+    {GP_ELEMENT_PIN_BUTTON, {42,  27, 4, 4, 1, 1, 3,    GP_SHAPE_ELLIPSE}},\
+    {GP_ELEMENT_PIN_BUTTON, {50,  32, 4, 4, 1, 1, 4,    GP_SHAPE_ELLIPSE}},\
+    {GP_ELEMENT_PIN_BUTTON, {64,  17, 4, 4, 1, 1, 18,   GP_SHAPE_ELLIPSE}},\
+    {GP_ELEMENT_PIN_BUTTON, {54,  49, 5, 5, 1, 1, 2,    GP_SHAPE_ELLIPSE}},\
+    {GP_ELEMENT_PIN_BUTTON, {42,  46, 4, 4, 1, 1, 26,   GP_SHAPE_ELLIPSE}},\
+    {GP_ELEMENT_PIN_BUTTON, {77,  15, 2, 2, 1, 1, 14,   GP_SHAPE_ELLIPSE}},\
+    {GP_ELEMENT_PIN_BUTTON, {84,  15, 2, 2, 1, 1, 21,   GP_SHAPE_ELLIPSE}},\
+    {GP_ELEMENT_PIN_BUTTON, {91,  15, 2, 2, 1, 1, 20,   GP_SHAPE_ELLIPSE}},\
+    {GP_ELEMENT_PIN_BUTTON, {98,  15, 2, 2, 1, 1, 16,   GP_SHAPE_ELLIPSE}},\
+    {GP_ELEMENT_PIN_BUTTON, {105, 15, 2, 2, 1, 1, 17,   GP_SHAPE_ELLIPSE}}\
+}
+
+#define DEFAULT_BOARD_LAYOUT_B {\
+    {GP_ELEMENT_PIN_BUTTON, {59, 27, 4, 4, 1, 1, 10,    GP_SHAPE_ELLIPSE}},\
+    {GP_ELEMENT_PIN_BUTTON, {69, 25, 4, 4, 1, 1, 11,    GP_SHAPE_ELLIPSE}},\
+    {GP_ELEMENT_PIN_BUTTON, {79, 25, 4, 4, 1, 1, 12,    GP_SHAPE_ELLIPSE}},\
+    {GP_ELEMENT_PIN_BUTTON, {89, 27, 4, 4, 1, 1, 13,    GP_SHAPE_ELLIPSE}},\
+    {GP_ELEMENT_PIN_BUTTON, {59, 37, 4, 4, 1, 1, 6,     GP_SHAPE_ELLIPSE}},\
+    {GP_ELEMENT_PIN_BUTTON, {69, 35, 4, 4, 1, 1, 7,     GP_SHAPE_ELLIPSE}},\
+    {GP_ELEMENT_PIN_BUTTON, {79, 35, 4, 4, 1, 1, 8,     GP_SHAPE_ELLIPSE}},\
+    {GP_ELEMENT_PIN_BUTTON, {89, 37, 4, 4, 1, 1, 9,     GP_SHAPE_ELLIPSE}},\
+    {GP_ELEMENT_PIN_BUTTON, {66, 45, 4, 4, 1, 1, 19,    GP_SHAPE_ELLIPSE}}\
+}`;
+
 function parseDefString(defString: string) {
   const macroRegex = /#define\s+(\w+)\s*\{([\s\S]*?)\}(?=\s*#define|\s*$)/g;
   const result: Record<string, any[]> = {};
@@ -143,7 +170,9 @@ const App = () => {
   const [elements, setElements] = useState<Element[]>([]);
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
-  const [defString, setDefString] = useState<string | undefined>();
+  const [defString, setDefString] = useState<string | undefined>(
+    DEFAULT_DEF_STRING,
+  );
 
   useEffect(() => {
     const canvas = canvasRef.current;
