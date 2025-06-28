@@ -1,10 +1,6 @@
 import {useState} from 'react';
 import {ElementShape, ElementType, Layout} from '../types';
-import {
-  createEnumRecord,
-  parseDefString,
-  transformDefStringToLayout,
-} from '../utils';
+import {createEnumRecord, transformDefStringToLayout} from '../utils';
 import Input from './Input';
 import Select from './Select';
 import './Sidebar.css';
