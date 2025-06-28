@@ -1,0 +1,23 @@
+.input_label {
+  color: #cbd5e1;
+}
+
+.input_field {
+  width: 100%;
+  padding: 0.5em;
+  box-sizing: border-box;
+  border: 1.5px solid #334155;
+  border-radius: 3px;
+  background-color: #0f172a;
+  color: #f1f5f9;
+  font-size: 1em;
+  transition:
+    border-color 0.2s,
+    box-shadow 0.2s;
+  outline: none;
+}
+
+.input_field:focus {
+  border-color: #38bdf8; /* Accent blue */
+  box-shadow: 0 0 0 2px #38bdf880;
+}

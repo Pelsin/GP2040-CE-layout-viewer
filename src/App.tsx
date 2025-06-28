@@ -1,178 +1,19 @@
 import './App.css';
 import {useEffect, useRef, useState} from 'react';
 
-enum ElementShape {
-  GP_SHAPE_ELLIPSE = 0,
-  GP_SHAPE_SQUARE = 1,
-  GP_SHAPE_LINE = 2,
-  GP_SHAPE_POLYGON = 3,
-  GP_SHAPE_ARC = 4,
-}
+import {ElementType, Layout} from './types';
+import {DEFAULT_BOARD_LAYOUT_A, DEFAULT_BOARD_LAYOUT_B} from './layouts';
 
-enum ElementType {
-  GP_ELEMENT_WIDGET = 0,
-  GP_ELEMENT_SCREEN = 1,
-  GP_ELEMENT_BTN_BUTTON = 2,
-  GP_ELEMENT_DIR_BUTTON = 3,
-  GP_ELEMENT_PIN_BUTTON = 4,
-  GP_ELEMENT_LEVER = 5,
-  GP_ELEMENT_LABEL = 6,
-  GP_ELEMENT_SPRITE = 7,
-  GP_ELEMENT_SHAPE = 8,
-}
+import Sidebar from './components/Sidebar';
+import {renderShape, transformLayoutToDefString} from './utils';
 
-type Element = {
-  type: ElementType;
-  x1: number;
-  y1: number;
-  x2: number;
-  y2: number;
-  stroke: number;
-  fill: number;
-  value: number;
-  shape: number;
-  rotation?: number; // Optional rotation for elements like square
-};
-
-const SCREEN_MULTIPLIER = 5;
-
-const DEFAULT_DEF_STRING = `#define DEFAULT_BOARD_LAYOUT_A {\
-    {GP_ELEMENT_PIN_BUTTON, {47,  19, 4, 4, 1, 1, 27,   GP_SHAPE_ELLIPSE}},\
-    {GP_ELEMENT_PIN_BUTTON, {32,  27, 4, 4, 1, 1, 5,    GP_SHAPE_ELLIPSE}},\
-    {GP_ELEMENT_PIN_BUTTON, {42,  27, 4, 4, 1, 1, 3,    GP_SHAPE_ELLIPSE}},\
-    {GP_ELEMENT_PIN_BUTTON, {50,  32, 4, 4, 1, 1, 4,    GP_SHAPE_ELLIPSE}},\
-    {GP_ELEMENT_PIN_BUTTON, {64,  17, 4, 4, 1, 1, 18,   GP_SHAPE_ELLIPSE}},\
-    {GP_ELEMENT_PIN_BUTTON, {54,  49, 5, 5, 1, 1, 2,    GP_SHAPE_ELLIPSE}},\
-    {GP_ELEMENT_PIN_BUTTON, {42,  46, 4, 4, 1, 1, 26,   GP_SHAPE_ELLIPSE}},\
-    {GP_ELEMENT_PIN_BUTTON, {77,  15, 2, 2, 1, 1, 14,   GP_SHAPE_ELLIPSE}},\
-    {GP_ELEMENT_PIN_BUTTON, {84,  15, 2, 2, 1, 1, 21,   GP_SHAPE_ELLIPSE}},\
-    {GP_ELEMENT_PIN_BUTTON, {91,  15, 2, 2, 1, 1, 20,   GP_SHAPE_ELLIPSE}},\
-    {GP_ELEMENT_PIN_BUTTON, {98,  15, 2, 2, 1, 1, 16,   GP_SHAPE_ELLIPSE}},\
-    {GP_ELEMENT_PIN_BUTTON, {105, 15, 2, 2, 1, 1, 17,   GP_SHAPE_ELLIPSE}}\
-}
-
-#define DEFAULT_BOARD_LAYOUT_B {\
-    {GP_ELEMENT_PIN_BUTTON, {59, 27, 4, 4, 1, 1, 10,    GP_SHAPE_ELLIPSE}},\
-    {GP_ELEMENT_PIN_BUTTON, {69, 25, 4, 4, 1, 1, 11,    GP_SHAPE_ELLIPSE}},\
-    {GP_ELEMENT_PIN_BUTTON, {79, 25, 4, 4, 1, 1, 12,    GP_SHAPE_ELLIPSE}},\
-    {GP_ELEMENT_PIN_BUTTON, {89, 27, 4, 4, 1, 1, 13,    GP_SHAPE_ELLIPSE}},\
-    {GP_ELEMENT_PIN_BUTTON, {59, 37, 4, 4, 1, 1, 6,     GP_SHAPE_ELLIPSE}},\
-    {GP_ELEMENT_PIN_BUTTON, {69, 35, 4, 4, 1, 1, 7,     GP_SHAPE_ELLIPSE}},\
-    {GP_ELEMENT_PIN_BUTTON, {79, 35, 4, 4, 1, 1, 8,     GP_SHAPE_ELLIPSE}},\
-    {GP_ELEMENT_PIN_BUTTON, {89, 37, 4, 4, 1, 1, 9,     GP_SHAPE_ELLIPSE}},\
-    {GP_ELEMENT_PIN_BUTTON, {66, 45, 4, 4, 1, 1, 19,    GP_SHAPE_ELLIPSE}}\
-}`;
-
-function parseDefString(defString: string) {
-  const macroRegex = /#define\s+(\w+)\s*\{([\s\S]*?)\}(?=\s*#define|\s*$)/g;
-  const result: Record<string, any[]> = {};
-  let macroMatch: RegExpExecArray | null;
-
-  while ((macroMatch = macroRegex.exec(defString))) {
-    const macroName = macroMatch[1];
-    const elementContent = macroMatch[2].trim();
-
-    const entries: string[] = [];
-    let braceLevel = 0;
-    let entry = '';
-    for (let i = 0; i < elementContent.length; i++) {
-      const char = elementContent[i];
-      if (char === '{') {
-        if (braceLevel === 0 && entry.trim().length > 0) {
-          entries.push(entry.trim().replace(/,$/, ''));
-          entry = '';
-        }
-        braceLevel++;
-      }
-      entry += char;
-      if (char === '}') {
-        braceLevel--;
-        if (braceLevel === 0) {
-          entries.push(entry.trim().replace(/,$/, ''));
-          entry = '';
-          while (
-            i + 1 < elementContent.length &&
-            (elementContent[i + 1] === ',' ||
-              elementContent[i + 1] === ' ' ||
-              elementContent[i + 1] === '\n' ||
-              elementContent[i + 1] === '\\')
-          ) {
-            i++;
-          }
-        }
-      }
-    }
-
-    const filteredEntries = entries.filter(e => e.length > 0);
-    const parsedElements = filteredEntries
-      .map(e => {
-        const match = e.match(/^\{([^,]+),\s*\{([^\}]*)\}\}$/);
-        if (!match) return null;
-        const key = match[1].trim();
-        const values = match[2]
-          .split(',')
-          .map(v => v.trim())
-          .map(v =>
-            v.startsWith('GP_SHAPE_')
-              ? `${v}`
-              : isNaN(Number(v))
-                ? v
-                : Number(v),
-          );
-        return {[key]: values};
-      })
-      .filter(Boolean);
-
-    result[macroName] = parsedElements;
-  }
-
-  return result;
-}
-
-const renderShape = ({
-  ctx,
-  element,
-}: {
-  ctx: CanvasRenderingContext2D;
-  element: Element;
-}) => {
-  const {x1, y1, x2, y2} = element;
-  switch (element.shape) {
-    case ElementShape.GP_SHAPE_ELLIPSE:
-      ctx.ellipse(x1, y1, x2, y2, 0, 0, 2 * Math.PI);
-      break;
-    case ElementShape.GP_SHAPE_SQUARE:
-      if (element.rotation && element.rotation !== 0) {
-        ctx.save();
-        const cx = (x1 + x2) / 2;
-        const cy = (y1 + y2) / 2;
-        ctx.translate(cx, cy);
-        ctx.rotate((element.rotation * Math.PI) / 180);
-        ctx.rect(-(x2 - x1) / 2, -(y2 - y1) / 2, x2 - x1, y2 - y1);
-        ctx.restore();
-      } else {
-        ctx.rect(x1, y1, x2 - x1, y2 - y1);
-      }
-      break;
-    case ElementShape.GP_SHAPE_LINE:
-      // ctx.moveTo(x1, y1);
-      // ctx.lineTo(x2, y2);
-      break;
-    case ElementShape.GP_SHAPE_POLYGON:
-      // TODO: Implement polygon rendering
-      break;
-    case ElementShape.GP_SHAPE_ARC:
-      // TODO: Implement arc rendering
-      break;
-  }
-};
-const App = () => {
-  const [elements, setElements] = useState<Element[]>([]);
+function App() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
-  const [defString, setDefString] = useState<string | undefined>(
-    DEFAULT_DEF_STRING,
-  );
+  const [layout, setLayout] = useState<Layout>({
+    a: DEFAULT_BOARD_LAYOUT_A,
+    b: DEFAULT_BOARD_LAYOUT_B,
+  });
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -184,8 +25,8 @@ const App = () => {
     ctx.lineWidth = 1;
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     ctx.imageSmoothingEnabled = false;
-    for (const element of elements) {
-      ctx.beginPath();
+
+    for (const element of [...layout.a, ...layout.b]) {
       switch (element.type) {
         case ElementType.GP_ELEMENT_BTN_BUTTON:
         case ElementType.GP_ELEMENT_DIR_BUTTON:
@@ -202,62 +43,44 @@ const App = () => {
           break;
         }
       }
-      ctx.stroke();
     }
-  }, [elements]);
-
-  useEffect(() => {
-    if (!defString) return;
-    const parsed = parseDefString(defString);
-
-    const elementsArr: Element[] = [];
-    const macroNames = ['DEFAULT_BOARD_LAYOUT_A', 'DEFAULT_BOARD_LAYOUT_B'];
-    for (const macro of macroNames) {
-      const arr = parsed[macro];
-      if (!arr) continue;
-
-      for (const obj of arr) {
-        const key = Object.keys(obj)[0];
-        const values = obj[key];
-        elementsArr.push({
-          type: ElementType[key as keyof typeof ElementType],
-          x1: values[0],
-          y1: values[1],
-          x2: values[2],
-          y2: values[3],
-          stroke: values[4],
-          fill: values[5],
-          value: values[6],
-          shape: ElementShape[values[7] as keyof typeof ElementShape],
-          rotation: values[8] !== undefined ? values[8] : 0,
-        });
-      }
-    }
-
-    setElements(elementsArr);
-  }, [defString]);
+  }, [layout]);
 
   return (
-    <>
-      <h1 className="title">GP2040-CE Layout Viewer</h1>
-      <div
-        className="editor"
-        style={{width: 128 * SCREEN_MULTIPLIER, height: 'auto'}}>
-        <canvas
-          ref={canvasRef}
-          width={128}
-          height={64}
-          style={{width: '100%', height: 'auto'}}
-        />
-        <textarea
-          value={defString}
-          onChange={e => {
-            setDefString(e.target.value);
+    <div style={{display: 'flex', height: '100%'}}>
+      <Sidebar setLayout={setLayout} layout={layout} />
+      <div className="main">
+        <img
+          src="/GP2040-CE-layout-viewer/logo.png"
+          style={{
+            width: '100%',
+            maxWidth: 350,
+            padding: 20,
+            display: 'block',
+            marginLeft: 'auto',
+            marginRight: 'auto',
           }}
         />
+        <div className="editor">
+          <canvas
+            ref={canvasRef}
+            width={128}
+            height={64}
+            style={{
+              width: '100%',
+              height: 'auto',
+            }}
+          />
+        </div>
+        <textarea
+          value={transformLayoutToDefString(layout)}
+          readOnly
+          rows={20}
+          style={{marginTop: 20}}
+        />
       </div>
-    </>
+    </div>
   );
-};
+}
 
 export default App;
