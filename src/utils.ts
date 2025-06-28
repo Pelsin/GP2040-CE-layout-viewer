@@ -105,7 +105,7 @@ export function transformLayoutToDefString(layout: Layout) {
 ${layout.a
   .map(
     el =>
-      `    {${ElementType[el.type]}, {${el.x1}, ${el.y1}, ${el.x2}, ${el.y2}, ${el.stroke}, ${el.fill}, ${el.value}, ${ElementShape[el.shape]}}},\\`,
+      `    {${ElementType[el.type]}, {${el.x1}, ${el.y1}, ${el.x2}, ${el.y2}, ${el.stroke}, ${el.fill}, ${el.value}, ${ElementShape[el.shape]}${el.rotation ? `,${el.rotation}` : ''}}},\\`,
   )
   .join('\n')}
 }
@@ -114,7 +114,7 @@ ${layout.a
 ${layout.b
   .map(
     el =>
-      `    {${ElementType[el.type]}, {${el.x1}, ${el.y1}, ${el.x2}, ${el.y2}, ${el.stroke}, ${el.fill}, ${el.value}, ${ElementShape[el.shape]}}},\\`,
+      `    {${ElementType[el.type]}, {${el.x1}, ${el.y1}, ${el.x2}, ${el.y2}, ${el.stroke}, ${el.fill}, ${el.value}, ${ElementShape[el.shape]}${el.rotation ? `,${el.rotation}` : ''}}},\\`,
   )
   .join('\n')}
 }`;
