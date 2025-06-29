@@ -68,7 +68,9 @@ function Sidebar({layout, setLayout}: SidebarProps) {
                 For it to parse correctly the definitions needs to be
                 DEFAULT_BOARD_LAYOUT_A and DEFAULT_BOARD_LAYOUT_B
               </p>
-              <a href="https://github.com/OpenStickCommunity/GP2040-CE/blob/main/configs/OpenCore0WASD/BoardConfig.h#L133C1-L157C2">
+              <a
+                href="https://github.com/OpenStickCommunity/GP2040-CE/blob/main/configs/OpenCore0WASD/BoardConfig.h#L133C1-L157C2"
+                target="_blank">
                 Example
               </a>
               <textarea
