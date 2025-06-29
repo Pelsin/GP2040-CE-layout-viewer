@@ -14,7 +14,7 @@ export enum ElementType {
   GP_ELEMENT_LEVER = 5,
   // GP_ELEMENT_LABEL = 6, // Not yet implemented
   // GP_ELEMENT_SPRITE = 7, // Not yet implemented
-  GP_ELEMENT_SHAPE = 8, // Not yet implemented
+  // GP_ELEMENT_SHAPE = 8, // Not yet implemented
 }
 export type Element = {
   type: ElementType;
