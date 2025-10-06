@@ -151,6 +151,43 @@ export function renderShape({
       break;
     // case ElementShape.GP_SHAPE_POLYGON:
     // case ElementShape.GP_SHAPE_ARC:
+
+    case ElementShape.GP_SHAPE_PILL:
+      const width = x2;
+      const height = y2;
+      const radius = Math.min(width, height) / 2;
+      const horizontal = width >= height;
+
+      ctx.save();
+      ctx.translate(x1, y1);
+      if (rotation) {
+        ctx.rotate((rotation * Math.PI) / 180);
+      }
+
+      if (horizontal) {
+        ctx.moveTo(radius, 0);
+        ctx.lineTo(width - radius, 0);
+        ctx.arcTo(width, 0, width, radius, radius);
+        ctx.lineTo(width, height - radius);
+        ctx.arcTo(width, height, width - radius, height, radius);
+        ctx.lineTo(radius, height);
+        ctx.arcTo(0, height, 0, height - radius, radius);
+        ctx.lineTo(0, radius);
+        ctx.arcTo(0, 0, radius, 0, radius);
+      } else {
+        ctx.moveTo(0, radius);
+        ctx.lineTo(0, height - radius);
+        ctx.arcTo(0, height, radius, height, radius);
+        ctx.lineTo(width - radius, height);
+        ctx.arcTo(width, height, width, height - radius, radius);
+        ctx.lineTo(width, radius);
+        ctx.arcTo(width, 0, width - radius, 0, radius);
+        ctx.lineTo(radius, 0);
+        ctx.arcTo(0, 0, 0, radius, radius);
+      }
+
+      ctx.restore();
+      break;
   }
   ctx.stroke();
 }

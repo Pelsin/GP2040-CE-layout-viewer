@@ -148,6 +148,7 @@ function Sidebar({layout, setLayout}: SidebarProps) {
                   onChange={value => {
                     handleChange('a', i, 'x2', value);
                   }}
+                  min={0}
                 />
                 <Input
                   label="Y2"
@@ -156,6 +157,7 @@ function Sidebar({layout, setLayout}: SidebarProps) {
                   onChange={value => {
                     handleChange('a', i, 'y2', value);
                   }}
+                  min={0}
                 />
                 <Input
                   label="Value"

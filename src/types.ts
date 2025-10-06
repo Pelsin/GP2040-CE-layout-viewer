@@ -4,6 +4,9 @@ export enum ElementShape {
   GP_SHAPE_LINE = 2,
   // GP_SHAPE_POLYGON = 3, // Not yet implemented
   // GP_SHAPE_ARC = 4, // Not yet implemented
+  GP_SHAPE_PILL = 5,
+
+
 }
 export enum ElementType {
   // GP_ELEMENT_WIDGET = 0, // Not yet implemented
